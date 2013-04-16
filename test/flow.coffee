@@ -144,6 +144,10 @@ test "Testing repeatable events ", ->
     testDate(event,DateExtentions.parse('2013-03-20'),false)
     testDate(event,DateExtentions.parse('2013-03-26'),false)
     testDate(event,DateExtentions.parse('2013-03-28'),false)
+    
+test "Regression - test for repeatables for only certain months" ->
+    "dupa"
+    
 
 test "Simple one month calculation for five items", ->
     cf = new CashFlow('2013-03-01', '2013-03-31', 1000)

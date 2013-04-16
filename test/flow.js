@@ -145,6 +145,8 @@ test("Testing repeatable events ", function() {
   return testDate(event, DateExtentions.parse('2013-03-28'), false);
 });
 
+test("Regression - test for repeatables for only certain months");
+
 test("Simple one month calculation for five items", function() {
   var cf;
   cf = new CashFlow('2013-03-01', '2013-03-31', 1000);

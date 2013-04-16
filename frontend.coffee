@@ -13,8 +13,7 @@ recalc = (start_date,end_date,cash_start,events_string,events_rep_string) ->
   cf.set_events flows,rep_flows
   
   fill_table_from_days cf.flo_days
-  chart = make_chart_from_days(cf.flo_days)
-  nv.addGraph chart
+  make_chart_from_days(cf.flo_days)
   
   false
 
@@ -27,40 +26,57 @@ fill_table_from_days = (days) ->
   
 make_chart_from_days = (days) ->
 
-  chart = nv.models.lineChart()
-
-  chart.xAxis
-    .axisLabel('Date')
-    .rotateLabels(-45)
-    .tickFormat (d) ->
-      return d3.time.format('%Y-%m-%d')(new Date(d))
-
-  chart.yAxis
-    .axisLabel('Cash (PLN)')
-    #.tickFormat(d3.format('d'))
-
   chart_values = []
   for day in days
-    point = 
-      "x": DateExtentions.parse(day.date).getTime()
-      "y": day.cash_after()
-    chart_values.push point
-    
-  chart_axis_cash =
-    key: "Cash"
-    color: '#ff7f0e'
-    values: chart_values
-    
-  d3.select('#myChart svg')
-    .datum([chart_axis_cash])
-    .transition().duration(500)
-    .call(chart)
+    chart_values.push [DateExtentions.parse(day.date).getTime(),day.cash_after()]
 
-  nv.utils.windowResize( -> 
-    d3.select('#chart svg').call(chart)
-  )
+  chart_options =
+    colors: ["#0088CC", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"],
+    lines: 
+      show: true
+      fill: true
+    points: 
+      show: true
+    xaxix:
+      mode: "time"
+      timeformat: "%Y-%M-%D"
+      minTickSize: [1, "day"]
+    grid:
+      hoverable: true
+      backgroundColor: 
+        colors: [ "#fff", "#DBEFFB" ]
+      borderWidth: 1
 
-  return chart
+  $.plot("#cf-chart", [chart_values], chart_options)
+  $("#cf-chart").bind("plothover", on_chart_hover)
+
+			
+  
+on_chart_hover = (event, pos, item) ->
+  console.log(item)
+  if (item)
+    if (previousPoint != item.dataIndex)
+      previousPoint = item.dataIndex;
+      $("#tooltip").remove()
+      x = DateExtentions.to_ymd(new Date(item.datapoint[0]))
+      y = item.datapoint[1].toFixed(0)
+
+      showTooltip(item.pageX, item.pageY, x + ": " + y + "PLN")
+  else
+    $("#tooltip").remove()
+    previousPoint = null         
+  
+showTooltip = (x, y, contents) ->
+  $("<div id='tooltip'>" + contents + "</div>").css(
+    position: "absolute"
+    display: "none"
+    top: y + 5
+    left: x + 5
+    border: "1px solid #fdd"
+    padding: "2px"
+    "background-color": "#fee"
+    opacity: 0.80
+  ).appendTo("body").fadeIn 200  
 
 tpl = (tpl_id,context) ->
   source   = $("#"+tpl_id).html()
