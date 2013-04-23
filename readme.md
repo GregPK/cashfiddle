@@ -42,7 +42,7 @@ A this time, there is a vision of 2 separate tools:
 
 ## Changelog
 
-### 0.0.1
+### 0.1.0
 
 #### build 14: 2013-04-22
 * first relatively working version
