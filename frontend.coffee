@@ -12,8 +12,8 @@ recalc = (start_date,end_date,cash_start,events_string,events_rep_string) ->
   cf = new CashFlow(start_date,end_date,cash_start)
   cf.set_events flows,rep_flows
   
-  fill_table_from_days cf.flo_days
-  make_chart_from_days(cf.flo_days)
+  fill_table_from_days cf.flo_days_array()
+  make_chart_from_days(cf.flo_days_array())
   
   false
 
@@ -21,14 +21,14 @@ fill_table_from_days = (days) ->
   $("#cashflow-table tbody").html('')
   for day in days
     day_event_names = (event.name for event in day.flo_events)
-    html = tpl('cashflowday-row', { date: day.date, cash_after: day.cash_after(), events:day_event_names} )
+    html = tpl('cashflowday-row', { date: DateExtensions.to_ymd(day.date), cash_after: day.cash_after(), events:day_event_names} )
     $("#cashflow-table tbody").append html
   
 make_chart_from_days = (days) ->
 
   chart_values = []
   for day in days
-    chart_values.push [DateExtentions.parse(day.date).getTime(),day.cash_after()]
+    chart_values.push [DateExtensions.parse(day.date).getTime(),day.cash_after()]
 
   chart_options =
     colors: ["#0088CC", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"],
@@ -53,12 +53,11 @@ make_chart_from_days = (days) ->
 			
   
 on_chart_hover = (event, pos, item) ->
-  console.log(item)
   if (item)
     if (previousPoint != item.dataIndex)
       previousPoint = item.dataIndex;
       $("#tooltip").remove()
-      x = DateExtentions.to_ymd(new Date(item.datapoint[0]))
+      x = DateExtensions.to_ymd(new Date(item.datapoint[0]))
       y = item.datapoint[1].toFixed(0)
 
       showTooltip(item.pageX, item.pageY, x + ": " + y + "PLN")

@@ -24,14 +24,14 @@ class ArrayExtensions
             throw "Bad scalar passed in [#{scalar}"
         scalar
 
-class DateExtentions
+class DateExtensions
     @is_valid: (date) ->
         unless date != 'object' or date.constructor.name != 'Date'
             date = @parse(date)
         not isNaN(date.getTime())
     @assert_valid: (date) ->
         if typeof date != 'object' or date.constructor.name != 'Date'
-            throw "Expected Date to be passed in DateExtentions.assert_valid, got #{date}"
+            throw "Expected Date to be passed in DateExtensions.assert_valid, got #{date}"
         throw "Setting Invalid date from [#{datestring}]" unless @is_valid(date)
 
     @parse: (datestring) ->
@@ -183,12 +183,12 @@ class TxtFlowRepeatableParser extends PlainTextLineParser
                     last_token = token
                     continue
                 else if last_token.match(/ending/i)
-                    event.ts_stop = DateExtentions.parse token
+                    event.ts_stop = DateExtensions.parse token
                 else if token.match(/starting/i)
                     last_token = token
                     continue
                 else if last_token.match(/starting/i)
-                    event.ts_start = DateExtentions.parse token
+                    event.ts_start = DateExtensions.parse token
                 else if parseInt(token) > 0
                     days = @get_days_of_month_repeat token
                     event.set_repeat_on_days_of_month days
@@ -240,17 +240,25 @@ class CashFlow
     flo_events_repeatable: []
 
     current_cash: 0
-    flo_days: []
+    flo_days: {}
+    flo_days_count: 0
 
     constructor: (@start_date, @end_date, @cash_start) ->
         @recalculate()
         @flo_events = []
         @flo_events_repeatable = []
+        @flo_days_count = 0
     
     set_events: (events, events_repeatable) ->
         @flo_events = events
         @flo_events_repeatable = events_repeatable
         @recalculate()
+
+    flo_days_array: ->
+        days = []
+        days.push v for k,v of @flo_days
+        days
+
 
     add_flow: (event) ->
         @flo_events.push event
@@ -261,19 +269,26 @@ class CashFlow
         @recalculate()
 
     add_day: (cash_flow_day) ->
-        #console.log("adding day day add: #{cash_flow_day.date}")
-        @flo_days.push cash_flow_day
+        ts_day = @day_hash(cash_flow_day.date)
+        days_exists = @flo_days[ts_day]
+        if days_exists?
+            @flo_days[ts_day] = @merge_days(days_exists,cash_flow_day)
+        else
+            @flo_days[ts_day] = cash_flow_day
+            @flo_days_count += 1
         #console.log("Before day add: #{@current_cash}")
-        @current_cash = cash_flow_day.cash_after()
+        @current_cash = @flo_days[ts_day].cash_after()
         #console.log("After day add: #{@current_cash}")
-    
-    # todo: should probably optimize (make hashes of days by date)    
+
+    day_hash: (date) ->
+        DateExtensions.to_ymd(date)
+
+    merge_days: (day, other_day) ->
+        day.flo_events.push e for e in other_day.flo_events
+        day
+
     get_day_for_date: (date) ->
-        date = DateExtentions.parse(date)
-        for day in @flo_days
-            day_date = DateExtentions.parse(day.date)
-            return day if day_date.getTime() == date.getTime()
-        null            
+        return @flo_days[@day_hash(date)]
 
     # todo: should probably optimize (make hashes of events by date)
     get_events_for_day: (date) ->
@@ -287,13 +302,14 @@ class CashFlow
     recalculate: ->
         #console.log "Calculating when CashFlow has #{@flo_events.length} flow events"
         @flo_days = []
+        @flo_days_count = 0
         @current_cash = 0
 
         @add_day(new CashFlowDay(@start_date, @cash_start)) # add first day - starting point
 
-        start_date = DateExtentions.parse(@start_date, "yyyy-MM-dd");
+        start_date = DateExtensions.parse(@start_date, "yyyy-MM-dd");
         today_is = start_date;
-        day_after_last = DateExtentions.parse(@end_date, "yyyy-MM-dd")
+        day_after_last = DateExtensions.parse(@end_date, "yyyy-MM-dd")
         day_after_last.setDate(day_after_last.getDate()+1)
         
         while today_is.getTime() < day_after_last.getTime()
@@ -301,7 +317,7 @@ class CashFlow
             
             if events_today.length > 0
                 console.log "adding day for #{today_is}"
-                cfd = new CashFlowDay(DateExtentions.to_ymd(today_is), @current_cash)
+                cfd = new CashFlowDay(DateExtensions.to_ymd(today_is), @current_cash)
                 cfd.add_flo_event event for event in events_today
                 @add_day cfd
             
@@ -314,6 +330,7 @@ class CashFlowDay
     cash_before: 0
 
     constructor: (@date, @cash_before) ->
+        @date = DateExtensions.parse @date
         @flo_events = []
 
     add_flo_event: (item) ->
@@ -336,8 +353,8 @@ class FloEvent
     ts: null
 
     set_ts: (datestring) ->
-        @ts = DateExtentions.parse(datestring)
-        DateExtentions.assert_valid(@ts)
+        @ts = DateExtensions.parse(datestring)
+        DateExtensions.assert_valid(@ts)
 
     
     get_date_string: ->
@@ -356,8 +373,11 @@ class FloEventRepeatable extends FloEvent
     repeat_in_these_months_only: null
 
     constructor: (@change_value, @name) ->
-        #DateExtentions.assert_valid(@ts_start)
-        #DateExtentions.assert_valid(@ts_stop)
+        #DateExtensions.assert_valid(@ts_start)
+        #DateExtensions.assert_valid(@ts_stop)
+        repeat_on_day_of_week: null
+        repeat_on_day_of_month: null
+        repeat_in_these_months_only: null
 
     validate_dates: (additional) ->
         additional = Date.today() unless additional?
@@ -394,10 +414,17 @@ class FloEventRepeatable extends FloEvent
             if @repeat_on_day_of_month.indexOf(dow) == -1
                 reasons_if_invalid.push "Event is set to repeat on days of month (#{@repeat_on_day_of_month}) and the day.#{dow} does not fit"
                 valid = false
+        
+        if @repeat_in_these_months_only?
+            month_in_year = date.getMonth()+1
+            if @repeat_in_these_months_only.indexOf(month_in_year) == -1
+                reasons_if_invalid.push "Event is set to repeat only in months: (#{@repeat_in_these_months_only}) and the month [#{month_in_year}] does not fit"
+                valid = false
+            
         valid
 
     to_s: () ->
-        "#{@change_value} at #{@ts_start}-#{@ts_stop} repeated on [#{@repeat_on_day_of_week},#{@repeat_on_day_of_month},#{@repeat_in_these_months_only}]"
+        "#{@change_value} at #{DateExtensions.to_ymd(@ts_start)}-#{DateExtensions.to_ymd(@ts_stop)} repeated on [#{@repeat_on_day_of_week},#{@repeat_on_day_of_month},#{@repeat_in_these_months_only}]"
 
 
 class ParserException

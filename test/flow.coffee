@@ -5,7 +5,7 @@ test_strings_flo =
                                 -200 @ 2013-03-20 - Buying a present
                                 """
     repeatable_events_only: """
-                            -4300 every february,august on the 1st ending on 2014-01-30 - Repay outstanding debt
+                            -4300 every april,august on the 1st ending on 2014-01-30 - Repay outstanding debt
                             3500 every month on 18th ending at 2013-04-30 - Paycheck (G)
                             6200 every month on 10th starting at 2013-06-01 - Paycheck
                             -88 every month on 12th - Internet
@@ -13,8 +13,23 @@ test_strings_flo =
                             -850 every 8th - Loan repayment
                             -70 every monday,fri - Grocery shopping
                             """
+eq = (value, value_expected, msg = null) ->
+  msg = "Expected to get #{value_expected}, got #{value}" unless msg?
+  ok value == value_expected, msg 
+                            
+testDate = (flo_event,date,expected = true) ->
+  res = flo_event.is_valid_for_date date
+  ok res == expected, "Event(#{flo_event.to_s()}) should be #{expected} for #{DateExtensions.to_ymd(date)}, was #{res}"                            
+
+check_event_count_for_day = (cf,dates,count_exp) ->
+  dates = [dates] if dates.constructor.name != 'Array'
+  for date in dates
+    count_is = cf.get_events_for_day(date).length
+    ok count_is == count_exp, "CashFlow should get [#{count_exp}] events for [#{DateExtensions.to_ymd(date)}] , is [#{count_is}]"  
+                            
 
 module "Parsing simple flows from plaintext"
+
 test "Parsing simple 3 line parsing", ->
     parser = new TxtFlowParser test_strings_flo.basic_flo_events_one_month
     flows = parser.parse()
@@ -65,9 +80,9 @@ test "Parsing only repeatable events, all cases", ->
         stop_dates_match = not skip_stop_dates and (ts_stop? and flow.ts_stop? and flow.ts_stop.getTime() == ts_stop.getTime())
         ok skip_stop_dates or stop_dates_match, "FER.ts_stop should be #{ts_stop}, is #{flow.ts_stop}"
 
-    check_flow_repeatable flows.shift(), -4300, 'Repay outstanding debt', [1], null, [2,8], null, DateExtentions.parse('2014-01-30')
-    check_flow_repeatable flows.shift(), 3500, 'Paycheck (G)', [18], null, null,null, DateExtentions.parse('2013-04-30')
-    check_flow_repeatable flows.shift(), 6200, 'Paycheck', [10], null, null, DateExtentions.parse('2013-06-01'), null 
+    check_flow_repeatable flows.shift(), -4300, 'Repay outstanding debt', [1], null, [4,8], null, DateExtensions.parse('2014-01-30')
+    check_flow_repeatable flows.shift(), 3500, 'Paycheck (G)', [18], null, null,null, DateExtensions.parse('2013-04-30')
+    check_flow_repeatable flows.shift(), 6200, 'Paycheck', [10], null, null, DateExtensions.parse('2013-06-01'), null 
     check_flow_repeatable flows.shift(), -88, 'Internet', [12]
     check_flow_repeatable flows.shift(), -550, 'Rent', [6]
     check_flow_repeatable flows.shift(), -850, 'Loan repayment', [8]
@@ -91,62 +106,73 @@ test "Testing CashFlowDay (isolated from flow)", ->
     ok ca == 1100, "CashFlowDay after 3 events should be 1100, is #{ca}"
 
 test "Testing repeatable events ", ->
-    testDate = (flo_event,date,expected = true) ->
-        res = flo_event.is_valid_for_date date
-        ok res == expected, "Event(#{flo_event.to_s()}) should be #{expected} for #{date}, was #{res}"
-
     event = new FloEventRepeatable(-600,"")
-    event.ts_start = DateExtentions.parse('2013-03-01')
-    event.ts_stop = DateExtentions.parse('2013-03-31')
+    event.ts_start = DateExtensions.parse('2013-03-01')
+    event.ts_stop = DateExtensions.parse('2013-03-31')
 
-    testDate(event,DateExtentions.parse('2013-02-27'),false)
-    testDate(event,DateExtentions.parse('2013-04-01'),false)
-    testDate(event,DateExtentions.parse('2013-03-01'),true)
-    testDate(event,DateExtentions.parse('2013-03-31'),true)
+    testDate(event,DateExtensions.parse('2013-02-27'),false)
+    testDate(event,DateExtensions.parse('2013-04-01'),false)
+    testDate(event,DateExtensions.parse('2013-03-01'),true)
+    testDate(event,DateExtensions.parse('2013-03-31'),true)
 
     event.set_repeat_on_days_of_week(1)
 
-    testDate(event,DateExtentions.parse('2013-03-11'),true)
-    testDate(event,DateExtentions.parse('2013-03-18'),true)
-    testDate(event,DateExtentions.parse('2013-03-25'),true)
+    testDate(event,DateExtensions.parse('2013-03-11'),true)
+    testDate(event,DateExtensions.parse('2013-03-18'),true)
+    testDate(event,DateExtensions.parse('2013-03-25'),true)
 
-    testDate(event,DateExtentions.parse('2013-03-10'),false)
-    testDate(event,DateExtentions.parse('2013-03-12'),false)
-    testDate(event,DateExtentions.parse('2013-03-13'),false)
-    testDate(event,DateExtentions.parse('2013-03-14'),false)
-    testDate(event,DateExtentions.parse('2013-03-15'),false)
-    testDate(event,DateExtentions.parse('2013-03-16'),false)
-    testDate(event,DateExtentions.parse('2013-03-17'),false)
+    testDate(event,DateExtensions.parse('2013-03-10'),false)
+    testDate(event,DateExtensions.parse('2013-03-12'),false)
+    testDate(event,DateExtensions.parse('2013-03-13'),false)
+    testDate(event,DateExtensions.parse('2013-03-14'),false)
+    testDate(event,DateExtensions.parse('2013-03-15'),false)
+    testDate(event,DateExtensions.parse('2013-03-16'),false)
+    testDate(event,DateExtensions.parse('2013-03-17'),false)
 
     event.set_repeat_on_days_of_week(null)
     event.set_repeat_on_days_of_month(1)
-    testDate(event,DateExtentions.parse('2013-03-01'),true)
-    testDate(event,DateExtentions.parse('2013-03-10'),false)
-    testDate(event,DateExtentions.parse('2013-03-12'),false)
-    testDate(event,DateExtentions.parse('2013-03-13'),false)
+    testDate(event,DateExtensions.parse('2013-03-01'),true)
+    testDate(event,DateExtensions.parse('2013-03-10'),false)
+    testDate(event,DateExtensions.parse('2013-03-12'),false)
+    testDate(event,DateExtensions.parse('2013-03-13'),false)
 
     event.set_repeat_on_days_of_month(14)
-    testDate(event,DateExtentions.parse('2013-03-14'),true)
-    testDate(event,DateExtentions.parse('2013-03-01'),false)
-    testDate(event,DateExtentions.parse('2013-03-10'),false)
-    testDate(event,DateExtentions.parse('2013-03-12'),false)
-    testDate(event,DateExtentions.parse('2013-03-13'),false)
+    testDate(event,DateExtensions.parse('2013-03-14'),true)
+    testDate(event,DateExtensions.parse('2013-03-01'),false)
+    testDate(event,DateExtensions.parse('2013-03-10'),false)
+    testDate(event,DateExtensions.parse('2013-03-12'),false)
+    testDate(event,DateExtensions.parse('2013-03-13'),false)
 
     event.set_repeat_on_days_of_month([1,3,9,16,25])
-    testDate(event,DateExtentions.parse('2013-03-01'),true)
-    testDate(event,DateExtentions.parse('2013-03-03'),true)
-    testDate(event,DateExtentions.parse('2013-03-09'),true)
-    testDate(event,DateExtentions.parse('2013-03-16'),true)
-    testDate(event,DateExtentions.parse('2013-03-25'),true)
-    testDate(event,DateExtentions.parse('2013-03-02'),false)
-    testDate(event,DateExtentions.parse('2013-03-12'),false)
-    testDate(event,DateExtentions.parse('2013-03-13'),false)
-    testDate(event,DateExtentions.parse('2013-03-20'),false)
-    testDate(event,DateExtentions.parse('2013-03-26'),false)
-    testDate(event,DateExtentions.parse('2013-03-28'),false)
+    testDate(event,DateExtensions.parse('2013-03-01'),true)
+    testDate(event,DateExtensions.parse('2013-03-03'),true)
+    testDate(event,DateExtensions.parse('2013-03-09'),true)
+    testDate(event,DateExtensions.parse('2013-03-16'),true)
+    testDate(event,DateExtensions.parse('2013-03-25'),true)
+    testDate(event,DateExtensions.parse('2013-03-02'),false)
+    testDate(event,DateExtensions.parse('2013-03-12'),false)
+    testDate(event,DateExtensions.parse('2013-03-13'),false)
+    testDate(event,DateExtensions.parse('2013-03-20'),false)
+    testDate(event,DateExtensions.parse('2013-03-26'),false)
+    testDate(event,DateExtensions.parse('2013-03-28'),false)
     
-test "Regression - test for repeatables for only certain months" ->
-    "dupa"
+test "Test for repeatables for only certain months", ->
+    event = new FloEventRepeatable(-600,"")
+    event.ts_start = DateExtensions.parse('2013-01-01')
+    event.ts_stop = DateExtensions.parse('2014-02-31')
+    event.set_repeat_on_days_of_month(1)
+    event.set_repeat_in_these_months_only([2,7])
+    
+    testDate(event,DateExtensions.parse('2013-01-01'),false)
+    testDate(event,DateExtensions.parse('2013-01-15'),false)
+    testDate(event,DateExtensions.parse('2013-02-01'),true)
+    
+    #
+    for i in [1..12]
+      testDate(event,DateExtensions.parse("2013-#{StringExtensions.lpad0(i)}-01"),i in [2,7])
+      for d in [2..30]
+        testDate(event,DateExtensions.parse("2013-#{StringExtensions.lpad0(i)}-#{StringExtensions.lpad0(d)}"),false)
+
     
 
 test "Simple one month calculation for five items", ->
@@ -161,7 +187,7 @@ test "Simple one month calculation for five items", ->
     cf.add_flow new FloEvent(-100, "Buying a present",'2013-03-20')
     ok cf.current_cash == 2800, "Current cash should be 2800 after third event, is #{cf.current_cash}"
 
-    ok cf.flo_days.length == 4, "CashFlow should calculate 4 days (1 start + 3 events), is #{cf.flo_days.length}"
+    ok cf.flo_days_count == 4, "CashFlow should calculate 4 days (1 start + 3 events), is #{cf.flo_days.length}"
 
 module "Testing parser based cashflows"
 
@@ -172,30 +198,24 @@ test "Testing cashflow based on repeatable events", ->
     cf = new CashFlow('2013-04-01', '2013-05-01', 5000)
     cf.set_events [], flows
     
-    check_event_count_for_day = (dates,count_exp) ->
-        dates = [dates] if dates.constructor.name != 'Array'
-        for date in dates
-            count_is = cf.get_events_for_day(date).length
-            ok count_is == count_exp, "CashFlow should get [#{count_exp}] events for [#{date}] , is [#{count_is}]"
-        
-    check_event_count_for_day(new Date('2013/04/01'),2)
-    check_event_count_for_day(new Date('2013/04/05'),1)
-    check_event_count_for_day(new Date('2013/04/06'),1)
-    check_event_count_for_day(new Date('2013/04/08'),2)
-    check_event_count_for_day(new Date('2013/04/12'),2)
-    check_event_count_for_day(new Date('2013/04/15'),1)
-    check_event_count_for_day(new Date('2013/04/18'),1)
-    check_event_count_for_day(new Date('2013/04/19'),1)
-    check_event_count_for_day(new Date('2013/04/22'),1)
-    check_event_count_for_day(new Date('2013/04/26'),1)
-    check_event_count_for_day(new Date('2013/04/29'),1)
+    check_event_count_for_day(cf,new Date('2013/04/01'),2)
+    check_event_count_for_day(cf,new Date('2013/04/05'),1)
+    check_event_count_for_day(cf,new Date('2013/04/06'),1)
+    check_event_count_for_day(cf,new Date('2013/04/08'),2)
+    check_event_count_for_day(cf,new Date('2013/04/12'),2)
+    check_event_count_for_day(cf,new Date('2013/04/15'),1)
+    check_event_count_for_day(cf,new Date('2013/04/18'),1)
+    check_event_count_for_day(cf,new Date('2013/04/19'),1)
+    check_event_count_for_day(cf,new Date('2013/04/22'),1)
+    check_event_count_for_day(cf,new Date('2013/04/26'),1)
+    check_event_count_for_day(cf,new Date('2013/04/29'),1)
     
     uneventful_dates = ["02","03","04","07","09","11","13","14","16","17","20","21","23","24","25","27","28","30"]
     for day in uneventful_dates
-        check_event_count_for_day(new Date('2013/04/'+day),0) 
+        check_event_count_for_day(cf, new Date('2013/04/'+day),0) 
     
-    ok cf.flo_days.length == 13, "CashFlow should calculate 13 days (5 monthly start + 4x2 weekly), is #{cf.flo_days.length}"
-    
+    ok cf.flo_days_count == 11, "CashFlow should calculate 11 days (5 monthly start + 4x2 weekly), is #{cf.flo_days_count}"
+   ### 
 test "Testing mixed cashflow for 3 months based on repeatable events, with all features", ->
     mixed_flo =
       static: """
@@ -217,22 +237,22 @@ test "Testing mixed cashflow for 3 months based on repeatable events, with all f
     flows_rep = parser_rep.parse()
     
     cf = new CashFlow('2013-04-01', '2013-06-01', 5000)
-    cf.set_events flows_rep, flows
+    cf.set_events flows,flows_rep
     
     last_cash = 5000
     
     check_cash_for_day = (dates,cash_exp) ->
-        dates = [dates] if dates.constructor.name != 'Array'
-        for date in dates
-            day = cf.get_day_for_date(date)
-            cash_is = 
-            ok count_is == count_exp, "CashFlow should get [#{count_exp}] events for [#{date}] , is [#{count_is}]"
+      dates = [dates] if dates.constructor.name != 'Array'
+      for date in dates
+        day = cf.get_day_for_date(date)
+        cash_is = 
+        ok count_is == count_exp, "CashFlow should get [#{count_exp}] events for [#{date}] , is [#{count_is}]"
         
     
     uneventful_dates = ["02","03","04","07","09","11","13","14","16","17","20","21","23","24","25","27","28","30"]
     for day in uneventful_dates
-        check_event_count_for_day(new Date('2013/04/'+day),0)    
-
+      check_event_count_for_day(cf,new Date('2013/04/'+day),0)    
+###
 
 module "Testing auxilary extensions"
 
@@ -265,4 +285,6 @@ test "ArrayExtensions", ->
     ok ArrayExtensions.compare_flat(ArrayExtensions.make_from_scalar([1]),[1])
 
 test "DateExtensions", ->
+    eq DateExtensions.parse('2013-04-17').getTime(), (new Date('2013/04/17')).getTime()
+  
     
