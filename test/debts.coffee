@@ -15,7 +15,7 @@ test_strings_debt =
 module "Parsing debts from plaintext"
 
 test "Parsing simple text", ->
-    parser = new TxtDebtParser test_strings_debt.txt1
+    parser = new CashFiddle.TxtDebtParser test_strings_debt.txt1
     debts = parser.parse()
 
     equal parser.lines.length, 1, "Parser should have parsed 1 line"
@@ -30,7 +30,7 @@ test "Parsing simple text", ->
     ok debts[0].amount == 30, "The amount should be 30, is [#{debts[0].amount}]"
 
 test "Parsing two lines", ->
-    parser = new TxtDebtParser test_strings_debt.txt2
+    parser = new CashFiddle.TxtDebtParser test_strings_debt.txt2
     debts = parser.parse()
 
     equal parser.lines.length, 2, "Parser should have parsed 2 line"
@@ -48,7 +48,7 @@ test "Parsing two lines", ->
 
 
 test "Parsing two lines with multiple personas", ->
-    parser = new TxtDebtParser test_strings_debt.multiple_people
+    parser = new CashFiddle.TxtDebtParser test_strings_debt.multiple_people
     debts = parser.parse()
 
     equal parser.lines.length, 2, "Parser should have parsed 2 line"
