@@ -997,6 +997,7 @@ CashFiddle.ExpenditureTable = (function() {
 })();
 
 CashFiddle.FlowChart = (function() {
+  var _this = this;
 
   function FlowChart() {}
 
@@ -1039,7 +1040,7 @@ CashFiddle.FlowChart = (function() {
         $("#tooltip").remove();
         x = CashFiddle.DateExtensions.to_ymd(new Date(item.datapoint[0]));
         y = item.datapoint[1].toFixed(0);
-        return this.showTooltip(item.pageX, item.pageY, x + ": " + y + " PLN");
+        return FlowChart.showTooltip(item.pageX, item.pageY, x + ": " + y + " PLN");
       }
     } else {
       $("#tooltip").remove();
@@ -1062,7 +1063,7 @@ CashFiddle.FlowChart = (function() {
 
   return FlowChart;
 
-})();
+}).call(this);
 
 tpl = function(tpl_id, context) {
   var source, template;
