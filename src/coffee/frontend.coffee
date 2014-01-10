@@ -207,7 +207,7 @@ class CashFiddle.FlowChart
 
 			
     
-    @on_chart_hover = (event, pos, item) ->
+    @on_chart_hover = (event, pos, item) =>
         if (item)
             if (previousPoint != item.dataIndex)
                 previousPoint = item.dataIndex;
