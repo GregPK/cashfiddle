@@ -157,7 +157,7 @@ class CashFiddle.TxtFlowRepeatableParser extends CashFiddle.PlainTextLineParser
     DAYS_OF_WEEK = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
     DAYS_OF_WEEK_SHORT = ['mon','tue','wed','thu','fri','sat','sun']
     MONTH_REGEXP = /January|February|March|April|May|June|July|August|September|October|November|December/gi
-    MONTHS_SHORT = ['january','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
+    MONTHS_SHORT = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
     DAY_REGEXP = /((mon)|(tues)|(tue)|(wed)|(wednes)|(thu)|(thurs)|(fri)|(sat)|(satur)|(sun))(day)?/gi
 
     parse_line: (line) ->
@@ -313,7 +313,7 @@ class CashFiddle.CashFlow
             events_today = @get_events_for_day(today_is)
             
             if events_today.length > 0
-                console.log "adding day for #{today_is}"
+                #console.log "adding day for #{today_is}"
                 cfd = new CashFiddle.CashFlowDay(CashFiddle.DateExtensions.to_ymd(today_is), @current_cash)
                 cfd.add_flo_event event for event in events_today
                 @add_day cfd
