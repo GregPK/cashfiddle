@@ -325,7 +325,7 @@ CashFiddle.TxtFlowRepeatableParser = (function(_super) {
 
   MONTH_REGEXP = /January|February|March|April|May|June|July|August|September|October|November|December/gi;
 
-  MONTHS_SHORT = ['january', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  MONTHS_SHORT = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
   DAY_REGEXP = /((mon)|(tues)|(tue)|(wed)|(wednes)|(thu)|(thurs)|(fri)|(sat)|(satur)|(sun))(day)?/gi;
 
@@ -541,7 +541,6 @@ CashFiddle.CashFlow = (function() {
     while (today_is.getTime() < day_after_last.getTime()) {
       events_today = this.get_events_for_day(today_is);
       if (events_today.length > 0) {
-        console.log("adding day for " + today_is);
         cfd = new CashFiddle.CashFlowDay(CashFiddle.DateExtensions.to_ymd(today_is), this.current_cash);
         for (_i = 0, _len = events_today.length; _i < _len; _i++) {
           event = events_today[_i];
@@ -997,6 +996,7 @@ CashFiddle.ExpenditureTable = (function() {
 })();
 
 CashFiddle.FlowChart = (function() {
+  var _this = this;
 
   function FlowChart() {}
 
@@ -1039,7 +1039,7 @@ CashFiddle.FlowChart = (function() {
         $("#tooltip").remove();
         x = CashFiddle.DateExtensions.to_ymd(new Date(item.datapoint[0]));
         y = item.datapoint[1].toFixed(0);
-        return this.showTooltip(item.pageX, item.pageY, x + ": " + y + " PLN");
+        return FlowChart.showTooltip(item.pageX, item.pageY, x + ": " + y + " PLN");
       }
     } else {
       $("#tooltip").remove();
@@ -1062,7 +1062,7 @@ CashFiddle.FlowChart = (function() {
 
   return FlowChart;
 
-})();
+}).call(this);
 
 tpl = function(tpl_id, context) {
   var source, template;
