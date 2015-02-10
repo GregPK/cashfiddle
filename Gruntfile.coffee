@@ -1,41 +1,56 @@
 module.exports = (grunt) ->
 
     # Project configuration.
-    grunt.initConfig({
-         pkg: grunt.file.readJSON 'package.json'
-         qunit:
+    grunt.initConfig(
+        pkg: grunt.file.readJSON 'package.json'
+        qunit:
              files: ['test/*.html']
-         coffee:
-             options:
+        coffee:
+            options:
                  bare: true
-             frontend:
+            all:
                  files:
-                    'dist/js/cashfiddle_fe.js': ['frontend.coffee']
-             tests:
+                    'dist/js/cashfiddle.js': ['src/coffee/*.coffee']
+            tests:
                 files:
-                    'test/all.js': ['cashfiddle.coffee'] 
+                    'test/all.js': ['src/coffee/cashfiddle.coffee'] 
                     'test/flow.js': ['test/flow.coffee']
-             models:
-                files:
-                    'dist/js/cashfiddle.js': ['cashfiddle.coffee']       
-         concat:
+        concat:
             test:
                 files:
                     'test/vendor.js': ['vendor/dist/*.js']
             dist:
                 files:
+                    'dist/css/cashfiddle.css': ['src/css/*.css']
+            vendor:
+                files:
                     'dist/js/vendor.js': ['vendor/dist/*.js']
-         watch:
-            coffee:
-                files: ['**/*.coffee']
-                tasks: ['coffee']
-    })
+                    'dist/css/vendor.css': ['vendor/css/*.css']
+        watch:
+            coffee_all:
+                files: ['src/coffee/*.coffee']
+                tasks: ['coffee:all']
+            coffee_test:
+                files: ['test/*.coffee']
+                tasks: ['coffee:tests']  
+        copy:
+            view:
+                files: [
+                    { expand:true, flatten: true, dest: 'dist/', src: 'src/html/*' }
+                ]
+            vendor:
+                files: [
+                    { expand:true, flatten: true, dest: 'dist/font/', src: 'vendor/font/*' }
+                ]
+    )
     
-    grunt.registerTask 'default', ['coffee:models','coffee:frontend','concat:dist', 'qunit']
+    grunt.registerTask 'dist', ['coffee:all','concat:dist','copy:view']
+    grunt.registerTask 'dist_with_assets', ['coffee:all','concat:dist', 'copy']
+    grunt.registerTask 'default', ['coffee:all','concat:dist', 'qunit']
     grunt.registerTask 'test', ['coffee:tests', 'concat:test', 'qunit']
-    grunt.registerTask 'vendor', ['concat:dist']
-    grunt.registerTask 'fe', ['coffee:frontend']
+    grunt.registerTask 'vendor', ['concat:vendor']
 
+    grunt.loadNpmTasks 'grunt-contrib-copy'
     grunt.loadNpmTasks 'grunt-contrib-coffee'
     grunt.loadNpmTasks 'grunt-contrib-qunit'
     grunt.loadNpmTasks 'grunt-contrib-concat'

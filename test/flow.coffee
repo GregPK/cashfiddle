@@ -14,24 +14,24 @@ test_strings_flo =
                             -70 every monday,fri - Grocery shopping
                             """
 eq = (value, value_expected, msg = null) ->
-  msg = "Expected to get #{value_expected}, got #{value}" unless msg?
-  ok value == value_expected, msg 
+    msg = "Expected to get #{value_expected}, got #{value}" unless msg?
+    ok value == value_expected, msg 
                             
 testDate = (flo_event,date,expected = true) ->
-  res = flo_event.is_valid_for_date date
-  ok res == expected, "Event(#{flo_event.to_s()}) should be #{expected} for #{DateExtensions.to_ymd(date)}, was #{res}"                            
+    res = flo_event.is_valid_for_date date
+    ok res == expected, "Event(#{flo_event.to_s()}) should be #{expected} for #{CashFiddle.DateExtensions.to_ymd(date)}, was #{res}"                            
 
 check_event_count_for_day = (cf,dates,count_exp) ->
-  dates = [dates] if dates.constructor.name != 'Array'
-  for date in dates
-    count_is = cf.get_events_for_day(date).length
-    ok count_is == count_exp, "CashFlow should get [#{count_exp}] events for [#{DateExtensions.to_ymd(date)}] , is [#{count_is}]"  
-                            
+    dates = [dates] if dates.constructor.name != 'Array'
+    for date in dates
+        count_is = cf.get_events_for_day(date).length
+        ok count_is == count_exp, "CashFlow should get [#{count_exp}] events for [#{CashFiddle.DateExtensions.to_ymd(date)}] , is [#{count_is}]"  
+        
 
 module "Parsing simple flows from plaintext"
 
 test "Parsing simple 3 line parsing", ->
-    parser = new TxtFlowParser test_strings_flo.basic_flo_events_one_month
+    parser = new CashFiddle.TxtFlowParser test_strings_flo.basic_flo_events_one_month
     flows = parser.parse()
 
     equal parser.lines.length, 3, "Parser should have parsed 3 lines"
@@ -58,7 +58,7 @@ module "Parsing repeatable flows from plaintext"
     todo: Check endind and starting dates
 ###
 test "Parsing only repeatable events, all cases", ->
-    parser = new TxtFlowRepeatableParser test_strings_flo.repeatable_events_only
+    parser = new CashFiddle.TxtFlowRepeatableParser test_strings_flo.repeatable_events_only
     flows = parser.parse()
 
     equal parser.lines.length, 7, "Parser should have parsed 7 lines"
@@ -67,10 +67,10 @@ test "Parsing only repeatable events, all cases", ->
     check_flow_repeatable = (flow,value,name,repeat_on_day_of_month,repeat_on_day_of_week = null,repeat_in_these_months_only=null,ts_start=null,ts_stop=null) ->
         ok flow.name == name, "FER.name should be [#{name}], is [#{flow.name}]"
         ok flow.change_value == value, "FER.change_value should be [#{value}], is [#{flow.change_value}]"
-        ok((flow.repeat_on_day_of_month == null and repeat_on_day_of_month == null) or ArrayExtensions.compare_flat(flow.repeat_on_day_of_month,repeat_on_day_of_month),
+        ok((flow.repeat_on_day_of_month == null and repeat_on_day_of_month == null) or CashFiddle.ArrayExtensions.compare_flat(flow.repeat_on_day_of_month,repeat_on_day_of_month),
             "FER.repeat_on_day_of_month should be #{repeat_on_day_of_month}, is #{flow.repeat_on_day_of_month}")
-        ok (flow.repeat_on_day_of_week == null and repeat_on_day_of_week == null) or ArrayExtensions.compare_flat(flow.repeat_on_day_of_week,repeat_on_day_of_week), "FER.repeat_on_day_of_week should be #{repeat_on_day_of_week}, is #{flow.repeat_on_day_of_week}"
-        ok (flow.repeat_in_these_months_only == null and repeat_in_these_months_only == null) or ArrayExtensions.compare_flat(flow.repeat_in_these_months_only,repeat_in_these_months_only), "FER.repeat_in_these_months_only should be #{repeat_in_these_months_only}, is #{flow.repeat_in_these_months_only}"
+        ok (flow.repeat_on_day_of_week == null and repeat_on_day_of_week == null) or CashFiddle.ArrayExtensions.compare_flat(flow.repeat_on_day_of_week,repeat_on_day_of_week), "FER.repeat_on_day_of_week should be #{repeat_on_day_of_week}, is #{flow.repeat_on_day_of_week}"
+        ok (flow.repeat_in_these_months_only == null and repeat_in_these_months_only == null) or CashFiddle.ArrayExtensions.compare_flat(flow.repeat_in_these_months_only,repeat_in_these_months_only), "FER.repeat_in_these_months_only should be #{repeat_in_these_months_only}, is #{flow.repeat_in_these_months_only}"
 
         skip_start_dates = (flow.ts_start == null and ts_start == null)
         start_dates_match = not skip_start_dates and (ts_start? and flow.ts_start? and flow.ts_start.getTime() == ts_start.getTime())
@@ -80,9 +80,9 @@ test "Parsing only repeatable events, all cases", ->
         stop_dates_match = not skip_stop_dates and (ts_stop? and flow.ts_stop? and flow.ts_stop.getTime() == ts_stop.getTime())
         ok skip_stop_dates or stop_dates_match, "FER.ts_stop should be #{ts_stop}, is #{flow.ts_stop}"
 
-    check_flow_repeatable flows.shift(), -4300, 'Repay outstanding debt', [1], null, [4,8], null, DateExtensions.parse('2014-01-30')
-    check_flow_repeatable flows.shift(), 3500, 'Paycheck (G)', [18], null, null,null, DateExtensions.parse('2013-04-30')
-    check_flow_repeatable flows.shift(), 6200, 'Paycheck', [10], null, null, DateExtensions.parse('2013-06-01'), null 
+    check_flow_repeatable flows.shift(), -4300, 'Repay outstanding debt', [1], null, [4,8], null, CashFiddle.DateExtensions.parse('2014-01-30')
+    check_flow_repeatable flows.shift(), 3500, 'Paycheck (G)', [18], null, null,null, CashFiddle.DateExtensions.parse('2013-04-30')
+    check_flow_repeatable flows.shift(), 6200, 'Paycheck', [10], null, null, CashFiddle.DateExtensions.parse('2013-06-01'), null 
     check_flow_repeatable flows.shift(), -88, 'Internet', [12]
     check_flow_repeatable flows.shift(), -550, 'Rent', [6]
     check_flow_repeatable flows.shift(), -850, 'Loan repayment', [8]
@@ -91,100 +91,100 @@ test "Parsing only repeatable events, all cases", ->
 module "Checking calculations (isolated from parser)"
 
 test "Testing CashFlowDay (isolated from flow)", ->
-    cfd = new CashFlowDay('2013-03-13',0)
+    cfd = new CashFiddle.CashFlowDay('2013-03-13',0)
     
-    cfd.add_flo_event new FloEvent(100,'1', '2013-03-13')
+    cfd.add_flo_event new CashFiddle.FloEvent(100,'1', '2013-03-13')
     ca = cfd.cash_after()
     ok ca == 100, "CashFlowDay after 1 event should be 100, is #{ca}"
 
-    cfd.add_flo_event new FloEvent(-1000,'2', '2013-03-13')
+    cfd.add_flo_event new CashFiddle.FloEvent(-1000,'2', '2013-03-13')
     ca = cfd.cash_after()
     ok ca == -900, "CashFlowDay after 2 events should be -900, is #{ca}"
 
-    cfd.add_flo_event new FloEvent(2000,'3','2013-03-13')
+    cfd.add_flo_event new CashFiddle.FloEvent(2000,'3','2013-03-13')
     ca = cfd.cash_after()
     ok ca == 1100, "CashFlowDay after 3 events should be 1100, is #{ca}"
 
 test "Testing repeatable events ", ->
-    event = new FloEventRepeatable(-600,"")
-    event.ts_start = DateExtensions.parse('2013-03-01')
-    event.ts_stop = DateExtensions.parse('2013-03-31')
+    event = new CashFiddle.FloEventRepeatable(-600,"")
+    event.ts_start = CashFiddle.DateExtensions.parse('2013-03-01')
+    event.ts_stop = CashFiddle.DateExtensions.parse('2013-03-31')
 
-    testDate(event,DateExtensions.parse('2013-02-27'),false)
-    testDate(event,DateExtensions.parse('2013-04-01'),false)
-    testDate(event,DateExtensions.parse('2013-03-01'),true)
-    testDate(event,DateExtensions.parse('2013-03-31'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-02-27'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-04-01'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-01'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-31'),true)
 
     event.set_repeat_on_days_of_week(1)
 
-    testDate(event,DateExtensions.parse('2013-03-11'),true)
-    testDate(event,DateExtensions.parse('2013-03-18'),true)
-    testDate(event,DateExtensions.parse('2013-03-25'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-11'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-18'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-25'),true)
 
-    testDate(event,DateExtensions.parse('2013-03-10'),false)
-    testDate(event,DateExtensions.parse('2013-03-12'),false)
-    testDate(event,DateExtensions.parse('2013-03-13'),false)
-    testDate(event,DateExtensions.parse('2013-03-14'),false)
-    testDate(event,DateExtensions.parse('2013-03-15'),false)
-    testDate(event,DateExtensions.parse('2013-03-16'),false)
-    testDate(event,DateExtensions.parse('2013-03-17'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-10'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-12'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-13'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-14'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-15'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-16'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-17'),false)
 
     event.set_repeat_on_days_of_week(null)
     event.set_repeat_on_days_of_month(1)
-    testDate(event,DateExtensions.parse('2013-03-01'),true)
-    testDate(event,DateExtensions.parse('2013-03-10'),false)
-    testDate(event,DateExtensions.parse('2013-03-12'),false)
-    testDate(event,DateExtensions.parse('2013-03-13'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-01'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-10'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-12'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-13'),false)
 
     event.set_repeat_on_days_of_month(14)
-    testDate(event,DateExtensions.parse('2013-03-14'),true)
-    testDate(event,DateExtensions.parse('2013-03-01'),false)
-    testDate(event,DateExtensions.parse('2013-03-10'),false)
-    testDate(event,DateExtensions.parse('2013-03-12'),false)
-    testDate(event,DateExtensions.parse('2013-03-13'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-14'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-01'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-10'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-12'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-13'),false)
 
     event.set_repeat_on_days_of_month([1,3,9,16,25])
-    testDate(event,DateExtensions.parse('2013-03-01'),true)
-    testDate(event,DateExtensions.parse('2013-03-03'),true)
-    testDate(event,DateExtensions.parse('2013-03-09'),true)
-    testDate(event,DateExtensions.parse('2013-03-16'),true)
-    testDate(event,DateExtensions.parse('2013-03-25'),true)
-    testDate(event,DateExtensions.parse('2013-03-02'),false)
-    testDate(event,DateExtensions.parse('2013-03-12'),false)
-    testDate(event,DateExtensions.parse('2013-03-13'),false)
-    testDate(event,DateExtensions.parse('2013-03-20'),false)
-    testDate(event,DateExtensions.parse('2013-03-26'),false)
-    testDate(event,DateExtensions.parse('2013-03-28'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-01'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-03'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-09'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-16'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-25'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-02'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-12'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-13'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-20'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-26'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-03-28'),false)
     
 test "Test for repeatables for only certain months", ->
-    event = new FloEventRepeatable(-600,"")
-    event.ts_start = DateExtensions.parse('2013-01-01')
-    event.ts_stop = DateExtensions.parse('2014-02-31')
+    event = new CashFiddle.FloEventRepeatable(-600,"")
+    event.ts_start = CashFiddle.DateExtensions.parse('2013-01-01')
+    event.ts_stop = CashFiddle.DateExtensions.parse('2014-02-31')
     event.set_repeat_on_days_of_month(1)
     event.set_repeat_in_these_months_only([2,7])
     
-    testDate(event,DateExtensions.parse('2013-01-01'),false)
-    testDate(event,DateExtensions.parse('2013-01-15'),false)
-    testDate(event,DateExtensions.parse('2013-02-01'),true)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-01-01'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-01-15'),false)
+    testDate(event,CashFiddle.DateExtensions.parse('2013-02-01'),true)
     
     #
     for i in [1..12]
-      testDate(event,DateExtensions.parse("2013-#{StringExtensions.lpad0(i)}-01"),i in [2,7])
-      for d in [2..30]
-        testDate(event,DateExtensions.parse("2013-#{StringExtensions.lpad0(i)}-#{StringExtensions.lpad0(d)}"),false)
+        testDate(event,CashFiddle.DateExtensions.parse("2013-#{CashFiddle.StringExtensions.lpad0(i)}-01"),i in [2,7])
+        for d in [2..30]
+            testDate(event,CashFiddle.DateExtensions.parse("2013-#{CashFiddle.StringExtensions.lpad0(i)}-#{CashFiddle.StringExtensions.lpad0(d)}"),false)
 
     
 
 test "Simple one month calculation for five items", ->
-    cf = new CashFlow('2013-03-01', '2013-03-31', 1000)
+    cf = new CashFiddle.CashFlow('2013-03-01', '2013-03-31', 1000)
 
-    cf.add_flow new FloEvent(-100, "I'm going out to dinner",'2013-03-10')
+    cf.add_flow new CashFiddle.FloEvent(-100, "I'm going out to dinner",'2013-03-10')
     ok cf.current_cash == 900, "Current cash should be 900 after first event, is #{cf.current_cash}"
 
-    cf.add_flow new FloEvent(2000, "I'm getting a premium",'2013-03-12')
+    cf.add_flow new CashFiddle.FloEvent(2000, "I'm getting a premium",'2013-03-12')
     ok cf.current_cash == 2900, "Current cash should be 2900 after second event, is #{cf.current_cash}"
 
-    cf.add_flow new FloEvent(-100, "Buying a present",'2013-03-20')
+    cf.add_flow new CashFiddle.FloEvent(-100, "Buying a present",'2013-03-20')
     ok cf.current_cash == 2800, "Current cash should be 2800 after third event, is #{cf.current_cash}"
 
     ok cf.flo_days_count == 4, "CashFlow should calculate 4 days (1 start + 3 events), is #{cf.flo_days.length}"
@@ -192,10 +192,10 @@ test "Simple one month calculation for five items", ->
 module "Testing parser based cashflows"
 
 test "Testing cashflow based on repeatable events", ->
-    parser = new TxtFlowRepeatableParser test_strings_flo.repeatable_events_only
+    parser = new CashFiddle.TxtFlowRepeatableParser test_strings_flo.repeatable_events_only
     flows = parser.parse()
     
-    cf = new CashFlow('2013-04-01', '2013-05-01', 5000)
+    cf = new CashFiddle.CashFlow('2013-04-01', '2013-05-01', 5000)
     cf.set_events [], flows
     
     check_event_count_for_day(cf,new Date('2013/04/01'),2)
@@ -258,7 +258,7 @@ module "Testing auxilary extensions"
 
 test "String extensions", ->
     lptest = (n,should) ->
-        res = StringExtensions.lpad0(n)
+        res = CashFiddle.StringExtensions.lpad0(n)
         ok res == should, "lpad0(#{n}) should be [#{should}], is [#{res}]"
     lptest(0,"00")
     lptest(1,"01")
@@ -266,9 +266,9 @@ test "String extensions", ->
     lptest(10,"10")
     lptest(99,"99")
 
-test "ArrayExtensions", ->
+test "CashFiddle.ArrayExtensions", ->
     arrTest = (a1,a2,a3 = null,should = true) ->
-        res = ArrayExtensions.compare_flat(a1,a2,a3)
+        res = CashFiddle.ArrayExtensions.compare_flat(a1,a2,a3)
         ok res == should, "Expecting #{should} when comparing [#{a1},#{a2},#{a3}], is #{res}"
 
     arrTest(['A'],['A'])
@@ -280,11 +280,9 @@ test "ArrayExtensions", ->
     arrTest(['A','X'],['A','B'] ,null, false)
     arrTest(['A','X'],['A','B'],['A','B'], false)
 
-    ok ArrayExtensions.make_from_scalar(null) == null
-    ok ArrayExtensions.compare_flat(ArrayExtensions.make_from_scalar(1),[1])
-    ok ArrayExtensions.compare_flat(ArrayExtensions.make_from_scalar([1]),[1])
+    ok CashFiddle.ArrayExtensions.make_from_scalar(null) == null
+    ok CashFiddle.ArrayExtensions.compare_flat(CashFiddle.ArrayExtensions.make_from_scalar(1),[1])
+    ok CashFiddle.ArrayExtensions.compare_flat(CashFiddle.ArrayExtensions.make_from_scalar([1]),[1])
 
-test "DateExtensions", ->
-    eq DateExtensions.parse('2013-04-17').getTime(), (new Date('2013/04/17')).getTime()
-  
-    
+test "CashFiddle.DateExtensions", ->
+    eq CashFiddle.DateExtensions.parse('2013-04-17').getTime(), (new Date('2013/04/17')).getTime()

@@ -1,6 +1,6 @@
 ## CashFiddle
 
-CashFiddle is a project to make a simple web based tools for financial uses.
+CashFiddle is a project to make simple web based tools for financial uses.
 The basic premise if that all input will be text, and the whole thing
 client-side and thus fast and simple.
 
@@ -8,26 +8,29 @@ A this time, there is a vision of 2 separate tools:
 
 * [somewhat done] Cash flow - show a graph of projected cash flow for a given time and events - both one-off and repeatable.
 * [planned & started] Debt calculator - given X number of people, where the people give uneven amount
-    of money for a common cause, calculate who owes who what and present it in
+    of money for a common cause, calculate who owes who what and present it in an appealing form
 
 ## Todo
 
 ### Bugs
 
-* fix chart x axis
-* debootstrap - change default look & feel
-* translate bottom sections of this readme from Polish
+ * fix chart x axis
+ * debootstrap - change default look & feel
+ * add validation for empty elements
 
 ### Features
 
 ####[importance: 1]:
-* Autosaving to local storage (as a user I want to be able to open the browser and pick up where I left of)
+
 * Parsing hashbangs (as a user I want to be able to share the results with other people)
-* Make the a grunt task to copy `view/index.html` to `dist/` (as the developer I want to have the `dist/' folder be auto managerd
+* Add error handling
+* Think about user interaction (employ user development)
 
 ####[importance: 2]:
+
 * add currency
 * add interactivity to chart (hovering on points displays items)
+* add date picker
 
 ## Roadmap (todo for later)
 
@@ -38,16 +41,32 @@ A this time, there is a vision of 2 separate tools:
 
 ## Contributing
 
-
-
 ## Changelog
 
-### 0.1.0
+### 0.2
+
+#### build 16: 2013-06-20
+
+* [1] Autosaving to local storage (as a user I want to be able to open the browser and pick up where I left of)
+* refactored JS from main index file to separate objects
+* added main controller object CashFiddle.App
+* added state managements object CashFiddle.AppState
+* design tweaks
+
+#### build 15: 2013-06-18
+
+* revamped design to more Fiddle-like
+* added icons
+* revamped internals (project is actually buildable now)
+* readme file translated
+* namespaced all classes under 'CashFiddle', refactored most polluting functions
+
+### 0.1
 
 #### build 14: 2013-04-22
-* first relatively working version
-* still a lot to do, but relatively useful (at least for me)
 
+* first working version
+* still a lot to do, but relatively useful (at least for me)
 
 ### 0.0.0 (pre-release)
 
@@ -62,7 +81,6 @@ A this time, there is a vision of 2 separate tools:
 * basic chart based on chart.js now working
 * caught a bug - repetable event for february and august (only in months) not working properly - writing tests
 * ^ also writing a mixed integration test for parsers of both types of events 
-
 
 #### build 11: 2013-03-29
 
@@ -90,45 +108,42 @@ A this time, there is a vision of 2 separate tools:
 
 #### build 7: 2013-03-14
 
-* początki tworzenia powtarzalnych wydarzeń
-* dorzucenie date.js jako zależności - będzie przydatne do parsowania dat i takich tam
-
+* starting development on repeatable events
+* add date.js dependency for date parsing
 
 #### build 6: 2013-03-13
 
-* rozbicie testów na flow i debt, obiekty nadal w jednym pliku
+* bump debt calculator tests into separate file
+* models still in one file
 
 #### build 5: 2013-03-10
 
-* dalszy rozwój testów, parsera, obliczeń
-* rozwiązanie problemów z dziedziczeniem JS
+* other tests
+* parser development
+* fixed js pseudo inheritance glitches
 
 #### build 4: 2013-03-09
 
-* testy do cashflow - na razie bez powtórzeń
-* pierwsze boje
-
-#### build 4:
-
-* zmiana kierunku na narzędzie głównie do cashflow (rozliczanie mniej przydatne)
-* wstępne obiekty cashflowowe
-
+* change of direction in favour of the more immediately useful cash flow tool
+* basic cash flow models
+* cashflow test cases written
 
 #### build 3:
 
-* dostosowanie do grunt 0.4
-* możliwość uruchamaniania testów z konsoli
+* move to Grunt.js 0.4
+* tests can run headless via grunt and phantom.js
 
 #### build 2:
 
-* ustawienie unit testów i testowanie na dwóch przypadkach
-* refactoring na testy
-* nazwa cashfiddle się pojawiła
+* unit test harness
+* unit test for two cases
+* refactored for test
+* the idea that this could be a good candidate for the "fiddle" paradigm
 
 #### build 1:
 
-* Pomysł na zrobienie szybkiego rozliczacza na podstawie plaintextu.
-* Napisanie szybkiego parsera w coffee-script
+* Idea for a quick debt calculator for multiple parties.
+* Quick parser in coffeescript written
 
 
 
