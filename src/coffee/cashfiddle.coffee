@@ -71,7 +71,6 @@ class CashFiddle.Parser
     input: null
 
     constructor: (@input) ->
-        #console.log "Inputting: " + @input
 
     parse: ->
         raise "Parser has to be inherited"
@@ -108,7 +107,6 @@ class CashFiddle.TxtDebtParser extends CashFiddle.PlainTextLineParser
         to = components[2].trim().split(',')
         amount = parseFloat(components[1].trim())
         debt = new CashFiddle.Debt(from, amount, to)
-        console.log debt
         debt
 
 class CashFiddle.TxtFlowParser extends CashFiddle.PlainTextLineParser
@@ -167,7 +165,6 @@ class CashFiddle.TxtFlowRepeatableParser extends CashFiddle.PlainTextLineParser
         event = null
 
         parser_err_end = " on line #{@current_line}: [#{line}]"
-        #console.log tokenizer.tokens.join("|")
         for token, i in tokenizer.tokens
             continue if token in ['every','because','on','the','month','-','at'] # syntactic sugar - throwaways
 
@@ -273,9 +270,7 @@ class CashFiddle.CashFlow
         else
             @flo_days[ts_day] = cash_flow_day
             @flo_days_count += 1
-        #console.log("Before day add: #{@current_cash}")
         @current_cash = @flo_days[ts_day].cash_after()
-        #console.log("After day add: #{@current_cash}")
 
     day_hash: (date) ->
         CashFiddle.DateExtensions.to_ymd(date)
@@ -297,7 +292,6 @@ class CashFiddle.CashFlow
         ev
 
     recalculate: ->
-        #console.log "Calculating when CashFlow has #{@flo_events.length} flow events"
         @flo_days = []
         @flo_days_count = 0
         @current_cash = 0
@@ -313,7 +307,6 @@ class CashFiddle.CashFlow
             events_today = @get_events_for_day(today_is)
             
             if events_today.length > 0
-                #console.log "adding day for #{today_is}"
                 cfd = new CashFiddle.CashFlowDay(CashFiddle.DateExtensions.to_ymd(today_is), @current_cash)
                 cfd.add_flo_event event for event in events_today
                 @add_day cfd
@@ -335,12 +328,10 @@ class CashFiddle.CashFlowDay
         @flo_events.push item
 
     cash_after: ->
-        #console.log "### Calculating after for day #{@date}, starting at #{@cash_before}"
         cash = @cash_before
         change = 0
         change += flo_item.change_value for flo_item in @flo_events
         cash += change
-        #console.log "### ending at #{cash}, changed by #{change}"
         cash
 
 
@@ -359,7 +350,6 @@ class CashFiddle.FloEvent
 
     constructor: (@change_value = 0, @name = "", ts = null) ->
         @set_ts(ts)
-        #console.debug "Creating FloEvent(#{@change_value}, #{@name}, #{@ts}"
 
 
 class CashFiddle.FloEventRepeatable extends CashFiddle.FloEvent
